@@ -3,42 +3,44 @@ import React from "react";
 
 const initialState = {
   sessionSetLength: 25,
-  sessionCurrentMinutes: 25,
-  sessionCurrentSeconds: "00",
+  timerCurrentMinutes: 25,
+  timerCurrentSeconds: "00",
   breakLength: 5,
-  sessionRunning: false,
-  sessionRunningTitle: "Session",
+  timerRunning: false,
+  sessionThanBreak: true,
+  timerTitle: "Session",
+  timerColor: { color: "black" },
 };
 
-//Tasks to do : copy incrementsession to decrement, test everything after session is finished
-
+//Tasks to do : break -> session currentminutes, color change
 //reducer function and logic behind
 
 function reducer(state: any, action: any) {
   switch (action.type) {
     //clicked play or stoppebutton, timer is running and counting
     //not sure if combination of case and if conditions is clear
-    case "startSessionTimer":
-      state.sessionRunningTitle = "Session is running";
+    case "startTimer":
+      state.sessionThanBreak
+        ? (state.timerTitle = "Session is running")
+        : (state.timerTitle = "Break is running");
       if (
-        state.sessionCurrentSeconds === 0 ||
-        state.sessionCurrentSeconds === "00"
+        state.timerCurrentSeconds === 0 ||
+        state.timerCurrentSeconds === "00"
       ) {
         return {
           ...state,
-          sessionCurrentMinutes: state.sessionCurrentMinutes - 1,
-          sessionCurrentSeconds: 59,
+          timerCurrentMinutes: state.timerCurrentMinutes - 1,
+          timerCurrentSeconds: 59,
         };
-      } else if (state.sessionCurrentSeconds < 11) {
+      } else if (state.timerCurrentSeconds < 11) {
         return {
           ...state,
-          sessionCurrentSeconds:
-            "0" + (state.sessionCurrentSeconds - 1).toString(),
+          timerCurrentSeconds: "0" + (state.timerCurrentSeconds - 1).toString(),
         };
       } else {
         return {
           ...state,
-          sessionCurrentSeconds: state.sessionCurrentSeconds - 1,
+          timerCurrentSeconds: state.timerCurrentSeconds - 1,
         };
       }
 
@@ -46,29 +48,41 @@ function reducer(state: any, action: any) {
 
     case "incrementAllSession":
       if (
-        state.sessionRunning === false &&
-        state.sessionCurrentSeconds != "00"
+        state.timerRunning === false &&
+        state.timerCurrentSeconds != "00" &&
+        state.sessionSetLength < 500
       ) {
         return {
           ...state,
-          sessionCurrentMinutes: state.sessionCurrentMinutes + 1,
-          sessionSetLength: state.sessionCurrentMinutes + 1,
-          sessionCurrentSeconds: "00",
+          timerCurrentMinutes: state.timerCurrentMinutes + 1,
+          sessionSetLength: state.timerCurrentMinutes + 1,
+          timerCurrentSeconds: "00",
         };
-      } else if (state.sessionRunning === false) {
+      } else if (state.timerRunning === false && state.sessionSetLength < 500) {
         return {
           ...state,
-          sessionCurrentMinutes: state.sessionCurrentMinutes + 1,
+          timerCurrentMinutes: state.timerCurrentMinutes + 1,
           sessionSetLength: state.sessionSetLength + 1,
         };
       } else {
         return { ...state };
       }
     case "decrementAllSession":
-      if (state.sessionRunning === false) {
+      if (
+        state.timerRunning === false &&
+        state.timerCurrentSeconds != "00" &&
+        state.sessionSetLength > 1
+      ) {
         return {
           ...state,
-          sessionCurrentMinutes: state.sessionCurrentMinutes - 1,
+          timerCurrentMinutes: state.timerCurrentMinutes - 1,
+          sessionSetLength: state.timerCurrentMinutes - 1,
+          timerCurrentSeconds: "00",
+        };
+      } else if (state.timerRunning === false && state.sessionSetLength > 1) {
+        return {
+          ...state,
+          timerCurrentMinutes: state.timerCurrentMinutes - 1,
           sessionSetLength: state.sessionSetLength - 1,
         };
       } else {
@@ -77,13 +91,13 @@ function reducer(state: any, action: any) {
     //setting breaklengths with sound
 
     case "incrementBreak":
-      if (state.sessionRunning === false && state.breakLength < 500) {
+      if (state.timerRunning === false && state.breakLength < 500) {
         return { ...state, breakLength: state.breakLength + 1 };
       } else {
         return { ...state };
       }
     case "decrementBreak":
-      if (state.sessionRunning === false && state.breakLength > 1) {
+      if (state.timerRunning === false && state.breakLength > 1) {
         return { ...state, breakLength: state.breakLength - 1 };
       } else {
         return { ...state };
@@ -91,32 +105,47 @@ function reducer(state: any, action: any) {
     //start or stop button
 
     case "startOrStop":
-      if (state.sessionRunning) {
+      if (state.timerRunning) {
         return {
           ...state,
-          sessionRunningTitle: "Session stopped",
-          sessionRunning: !state.sessionRunning,
+          timerTitle: "Timer stopped",
+          timerRunning: !state.timerRunning,
         };
       } else {
         return {
           ...state,
-          sessionRunning: !state.sessionRunning,
+          timerTitle: "Timer is starting...",
+          timerRunning: !state.timerRunning,
         };
       }
 
     case "reset":
       return {
         sessionSetLength: 25,
-        sessionCurrentMinutes: 25,
-        sessionCurrentSeconds: "00",
+        timerCurrentMinutes: 25,
+        timerCurrentSeconds: "00",
         breakLength: 5,
-        sessionRunning: false,
-        sessionRunningTitle: "Session restarted",
+        timerRunning: false,
+        timerTitle: "Clock restarted",
       };
 
     case "sessionFinished":
-      return { ...state, sessionRunningTitle: "Session has finished" };
+      return {
+        ...state,
+        timerTitle: "Break is running",
+        timerCurrentMinutes: state.breakLength - 1,
+        sessionThanBreak: false,
+      };
 
+    case "breakFinished":
+      return {
+        ...state,
+        timerTitle: "Session is running",
+        timerCurrentMinutes: state.sessionSetLength - 1,
+        sessionThanBreak: true,
+      };
+    // case "changeTimerColor":
+    //   return { ...state, timerColor: { color: "red" } };
     default:
       return state;
   }
@@ -142,24 +171,26 @@ export default function App() {
   );
 
   React.useEffect(() => {
-    if (state.sessionRunning && state.sessionCurrentMinutes >= 0) {
-      const mySessionInterval = setInterval(() => {
-        dispatch({ type: "startSessionTimer" });
+    if (state.timerRunning && state.timerCurrentMinutes >= 0) {
+      let mySessionInterval = setInterval(() => {
+        dispatch({ type: "startTimer" });
       }, 1000);
-      const myBreakInterval = setInterval(() => {
-        console.log("beep");
-        beepSound.play();
-      }, state.breakLength * 1000 * 60);
+
+      // let myBreakInterval = setInterval(() => {
+      //   console.log("beep");
+      //
+      // }, state.breakLength * 1000 * 60);
 
       return () => {
-        clearInterval(myBreakInterval);
         clearInterval(mySessionInterval);
       };
-    } else if (state.sessionCurrentMinutes === -1) {
-      dispatch({ type: "reset" });
-      dispatch({ type: "sessionFinished" });
+    } else if (state.timerCurrentMinutes === -1) {
+      beepSound.play();
+      state.sessionThanBreak
+        ? dispatch({ type: "sessionFinished" })
+        : dispatch({ type: "breakFinished" });
     }
-  }, [state.sessionRunning, state.sessionCurrentMinutes]);
+  }, [state.timerRunning, state.timerCurrentMinutes]);
 
   return (
     <main>
@@ -200,11 +231,11 @@ export default function App() {
       </div>
       <div className="card border-dark mb-3" style={{ maxWidth: "18rem" }}>
         <div className="card-header" id="timer-label">
-          {state.sessionRunningTitle}
+          {state.timerTitle}
         </div>
         <div className="card-body text-dark">
-          <h1 className="card-title" id="time-left">
-            {state.sessionCurrentMinutes}:{state.sessionCurrentSeconds}
+          <h1 className="card-title" id="time-left" style={state.timerColor}>
+            {state.timerCurrentMinutes}:{state.timerCurrentSeconds}
           </h1>
         </div>
       </div>
