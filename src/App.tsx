@@ -12,17 +12,15 @@ const initialState = {
   timerColor: { color: "black" },
 };
 
-//Tasks to do : break -> session currentminutes, color change
 //reducer function and logic behind
 
 function reducer(state: any, action: any) {
   switch (action.type) {
-    //clicked play or stoppebutton, timer is running and counting
-    //not sure if combination of case and if conditions is clear
+      
+    //for clicking Play/Stop Button -> timer is running and counting
+      
     case "startTimer":
-      state.sessionThanBreak
-        ? (state.timerTitle = "Session is running")
-        : (state.timerTitle = "Break is running");
+
       if (
         state.timerCurrentSeconds === 0 ||
         state.timerCurrentSeconds === "00"
@@ -44,65 +42,149 @@ function reducer(state: any, action: any) {
         };
       }
 
-    //setting both sessions, current and set session, if and else condition is needed or case jumps to another case
+    //setting both Sessions, Current and setsession, if and else condition is needed or case jumps to another case
 
-    case "incrementAllSession":
-      if (
-        state.timerRunning === false &&
-        state.timerCurrentSeconds != "00" &&
-        state.sessionSetLength < 500
-      ) {
-        return {
-          ...state,
-          timerCurrentMinutes: state.timerCurrentMinutes + 1,
-          sessionSetLength: state.timerCurrentMinutes + 1,
-          timerCurrentSeconds: "00",
-        };
-      } else if (state.timerRunning === false && state.sessionSetLength < 500) {
-        return {
-          ...state,
-          timerCurrentMinutes: state.timerCurrentMinutes + 1,
-          sessionSetLength: state.sessionSetLength + 1,
-        };
+    //incrementBreaks, incrementSessions, decrementBreaks, decrementSessions are morelikely the same, logic behind: if session/break change also the timer change, if not, change only the session/break. Alternative is to use two cases on button click instead of one, would have save some rows, but adds one more case.
+      
+    case "incrementSession":
+      if (state.sessionThanBreak) {
+        if (
+          state.timerRunning === false &&
+          state.timerCurrentSeconds != "00" &&
+          state.sessionSetLength < 500
+        ) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes + 2,
+            sessionSetLength: state.sessionSetLength + 1,
+            timerCurrentSeconds: "00",
+          };
+        } else if (
+          state.timerRunning === false &&
+          state.sessionSetLength < 500
+        ) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes + 1,
+            sessionSetLength: state.sessionSetLength + 1,
+          };
+        } else {
+          return { ...state };
+        }
       } else {
-        return { ...state };
+        if (state.timerRunning === false && state.sessionSetLength < 500) {
+          return {
+            ...state,
+            sessionSetLength: state.sessionSetLength + 1,
+          };
+        } else {
+          return { ...state };
+        }
       }
-    case "decrementAllSession":
-      if (
-        state.timerRunning === false &&
-        state.timerCurrentSeconds != "00" &&
-        state.sessionSetLength > 1
-      ) {
-        return {
-          ...state,
-          timerCurrentMinutes: state.timerCurrentMinutes - 1,
-          sessionSetLength: state.timerCurrentMinutes - 1,
-          timerCurrentSeconds: "00",
-        };
-      } else if (state.timerRunning === false && state.sessionSetLength > 1) {
-        return {
-          ...state,
-          timerCurrentMinutes: state.timerCurrentMinutes - 1,
-          sessionSetLength: state.sessionSetLength - 1,
-        };
+
+    case "decrementSession":
+      if (state.sessionThanBreak) {
+        if (
+          state.timerRunning === false &&
+          state.timerCurrentSeconds != "00" &&
+          state.sessionSetLength > 1
+        ) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes,
+            sessionSetLength: state.sessionSetLength - 1,
+            timerCurrentSeconds: "00",
+          };
+        } else if (state.timerRunning === false && state.sessionSetLength > 1) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes - 1,
+            sessionSetLength: state.sessionSetLength - 1,
+          };
+        } else {
+          return { ...state };
+        }
+
       } else {
-        return { ...state };
+        if (state.timerRunning === false && state.sessionSetLength > 1) {
+          return {
+            ...state,
+            sessionSetLength: state.sessionSetLength - 1,
+          };
+        } else {
+          return { ...state };
+        }
       }
-    //setting breaklengths with sound
 
     case "incrementBreak":
-      if (state.timerRunning === false && state.breakLength < 500) {
-        return { ...state, breakLength: state.breakLength + 1 };
+
+      if (state.sessionThanBreak === false) {
+        if (
+          state.timerRunning === false &&
+          state.timerCurrentSeconds != "00" &&
+          state.breakLength < 500
+        ) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes + 2,
+            breakLength: state.breakLength + 1,
+            timerCurrentSeconds: "00",
+          };
+        } else if (state.timerRunning === false && state.breakLength < 500) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes + 1,
+            breakLength: state.breakLength + 1,
+          };
+        } else {
+          return { ...state };
+        }
+
       } else {
-        return { ...state };
+        if (state.timerRunning === false && state.breakLength < 500) {
+          return {
+            ...state,
+            breakLength: state.breakLength + 1,
+          };
+        } else {
+          return { ...state };
+        }
       }
     case "decrementBreak":
-      if (state.timerRunning === false && state.breakLength > 1) {
-        return { ...state, breakLength: state.breakLength - 1 };
+      if (state.sessionThanBreak === false) {
+        if (
+          state.timerRunning === false &&
+          state.timerCurrentSeconds != "00" &&
+          state.breakLength > 1
+        ) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes,
+            breakLength: state.breakLength - 1,
+            timerCurrentSeconds: "00",
+          };
+        } else if (state.timerRunning === false && state.breakLength > 1) {
+          return {
+            ...state,
+            timerCurrentMinutes: state.timerCurrentMinutes - 1,
+            breakLength: state.breakLength - 1,
+          };
+        } else {
+          return { ...state };
+        }
+
       } else {
-        return { ...state };
+        if (state.timerRunning === false && state.breakLength > 1) {
+          return {
+            ...state,
+            breakLength: state.breakLength - 1,
+          };
+        } else {
+          return { ...state };
+        }
       }
-    //start or stop button
+      
+    //start or stop button for timer to run or stop
 
     case "startOrStop":
       if (state.timerRunning) {
@@ -119,6 +201,26 @@ function reducer(state: any, action: any) {
         };
       }
 
+    //timer color changes, if timer is below 1 minute
+      
+    case "timerColorChange":
+      if (state.timerCurrentMinutes === 0) {
+        return { ...state, timerColor: { color: "red" } };
+      } else {
+        return { ...state, timerColor: { color: "black" } };
+      }
+
+    //timer title changes depends if its session or break
+
+    case "sessionOrBrake?":
+      if (state.sessionThanBreak) {
+        return { ...state, timerTitle: "Session is running" };
+      } else {
+        return { ...state, timerTitle: "Break is running" };
+      }
+
+    //reset to change everything to initialState
+
     case "reset":
       return {
         sessionSetLength: 25,
@@ -126,8 +228,13 @@ function reducer(state: any, action: any) {
         timerCurrentSeconds: "00",
         breakLength: 5,
         timerRunning: false,
-        timerTitle: "Clock restarted",
+        sessionThanBreak: true,
+        timerTitle: "Session",
+        timerColor: { color: "black" },
+
       };
+
+    //if session or break is finished -> change to break or session
 
     case "sessionFinished":
       return {
@@ -135,6 +242,13 @@ function reducer(state: any, action: any) {
         timerTitle: "Break is running",
         timerCurrentMinutes: state.breakLength - 1,
         sessionThanBreak: false,
+      };
+    case "breakFinished":
+      return {
+        ...state,
+        timerTitle: "Session is running",
+        timerCurrentMinutes: state.sessionSetLength - 1,
+        sessionThanBreak: true,
       };
 
     case "breakFinished":
@@ -155,37 +269,39 @@ function reducer(state: any, action: any) {
 export default function App() {
   const [state, dispatch] = React.useReducer(reducer, initialState);
 
-  //These two functions means more code, but is recommended
-  function incrementAllSession() {
-    dispatch({ type: "incrementAllSession" });
+  //These two functions are another method how to pass dispatch into html code below
+  
+  function incrementSession() {
+    dispatch({ type: "incrementSession" });
   }
 
-  function decrementAllSession() {
-    dispatch({ type: "decrementAllSession" });
+  function decrementSession() {
+    dispatch({ type: "decrementSession" });
   }
 
-  //beepSOund to play for break length
+  //beepSound to play when break or session finishes
 
   const beepSound = new Audio(
     "https://raw.githubusercontent.com/freeCodeCamp/cdn/master/build/testable-projects-fcc/audio/BeepSound.wav"
   );
 
+  //useEffect for re-rendering every second or sound beep
+
   React.useEffect(() => {
     if (state.timerRunning && state.timerCurrentMinutes >= 0) {
       let mySessionInterval = setInterval(() => {
         dispatch({ type: "startTimer" });
+        dispatch({ type: "timerColorChange" });
+        dispatch({ type: "sessionOrBrake?" });
       }, 1000);
 
-      // let myBreakInterval = setInterval(() => {
-      //   console.log("beep");
-      //
-      // }, state.breakLength * 1000 * 60);
 
       return () => {
         clearInterval(mySessionInterval);
       };
     } else if (state.timerCurrentMinutes === -1) {
       beepSound.play();
+
       state.sessionThanBreak
         ? dispatch({ type: "sessionFinished" })
         : dispatch({ type: "breakFinished" });
@@ -198,23 +314,23 @@ export default function App() {
       <div id="lengths">
         <div id="break-label">
           <div>Session Length</div>
-          <div>
+          <div className="d-flex align-items-center">
             <i
               className="bi bi-arrow-up icon-sm"
               id="break-increment"
-              onClick={incrementAllSession}
+              onClick={incrementSession}
             ></i>
             <div id="break-length">{state.sessionSetLength}</div>
             <i
               className="bi bi-arrow-down icon-sm"
               id="break-decrement"
-              onClick={decrementAllSession}
+              onClick={decrementSession}
             ></i>
           </div>
         </div>
         <div id="session-label">
           <div>Break Length</div>
-          <div>
+          <div className="d-flex align-items-center">
             <i
               className="bi bi-arrow-up icon-sm"
               id="session-increment"
