@@ -20,6 +20,7 @@ function reducer(state: any, action: any) {
     //for clicking Play/Stop Button -> timer is running and counting
       
     case "startTimer":
+
       if (
         state.timerCurrentSeconds === 0 ||
         state.timerCurrentSeconds === "00"
@@ -103,6 +104,7 @@ function reducer(state: any, action: any) {
         } else {
           return { ...state };
         }
+
       } else {
         if (state.timerRunning === false && state.sessionSetLength > 1) {
           return {
@@ -115,6 +117,7 @@ function reducer(state: any, action: any) {
       }
 
     case "incrementBreak":
+
       if (state.sessionThanBreak === false) {
         if (
           state.timerRunning === false &&
@@ -136,6 +139,7 @@ function reducer(state: any, action: any) {
         } else {
           return { ...state };
         }
+
       } else {
         if (state.timerRunning === false && state.breakLength < 500) {
           return {
@@ -168,6 +172,7 @@ function reducer(state: any, action: any) {
         } else {
           return { ...state };
         }
+
       } else {
         if (state.timerRunning === false && state.breakLength > 1) {
           return {
@@ -226,6 +231,7 @@ function reducer(state: any, action: any) {
         sessionThanBreak: true,
         timerTitle: "Session",
         timerColor: { color: "black" },
+
       };
 
     //if session or break is finished -> change to break or session
@@ -237,7 +243,6 @@ function reducer(state: any, action: any) {
         timerCurrentMinutes: state.breakLength - 1,
         sessionThanBreak: false,
       };
-
     case "breakFinished":
       return {
         ...state,
@@ -246,6 +251,15 @@ function reducer(state: any, action: any) {
         sessionThanBreak: true,
       };
 
+    case "breakFinished":
+      return {
+        ...state,
+        timerTitle: "Session is running",
+        timerCurrentMinutes: state.sessionSetLength - 1,
+        sessionThanBreak: true,
+      };
+    // case "changeTimerColor":
+    //   return { ...state, timerColor: { color: "red" } };
     default:
       return state;
   }
@@ -280,6 +294,7 @@ export default function App() {
         dispatch({ type: "timerColorChange" });
         dispatch({ type: "sessionOrBrake?" });
       }, 1000);
+
 
       return () => {
         clearInterval(mySessionInterval);
